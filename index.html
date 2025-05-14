@@ -251,6 +251,55 @@
       50% { transform: translate(-50%, -50%) scale(1.05); }
       100% { transform: translate(-50%, -50%) scale(1); }
     }
+    
+    /* Attendance history item */
+    .attendance-item {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+    
+    .attendance-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .attendance-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    
+    .attendance-time {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    
+    .attendance-list {
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    
+    /* Scrollbar styling */
+    .attendance-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .attendance-list::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+    
+    .attendance-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+    }
+    
+    .attendance-list::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
   </style>
 </head>
 <body class="p-4 md:p-6">
@@ -262,7 +311,7 @@
       </button>
       <div class="header-gradient text-white rounded-2xl p-6 mb-6 text-center">
         <div class="school-logo mb-4">
-         <img src="https://i.ibb.co.com/3YjdDh2N/logo-sekolah-FINAL.png" alt="Logo SMPN 1 Sukasada" class="school-logo">
+          <img src="https://i.ibb.co/3YjdDh2N/logo-sekolah-FINAL.png" alt="Logo SMPN 1 Sukasada" class="school-logo">
         </div>
         <h1 class="text-2xl font-bold mb-1">SMP NEGERI 1 SUKASADA</h1>
         <p class="opacity-90">Sistem Absensi QR Code Siswa (Enhanced Performance)</p>
@@ -308,13 +357,17 @@
       
       <!-- History Section -->
       <div class="history-section">
-        <!-- Last Attendance Display (Moved to Side) -->
-        <div class="last-attendance" id="lastAttendanceContainer" style="display: none;">
-          <h3 class="font-bold text-lg mb-2 flex items-center justify-center">
-            <i class="fas fa-history mr-2"></i> Riwayat Terakhir
+        <!-- Last Attendance Display -->
+        <div class="last-attendance">
+          <h3 class="font-bold text-lg mb-4 flex items-center justify-center">
+            <i class="fas fa-history mr-2"></i> 5 Riwayat Terakhir
           </h3>
-          <div class="text-xl font-semibold text-center" id="lastAttendanceName"></div>
-          <div class="text-sm opacity-90 mt-1 text-center" id="lastAttendanceTime"></div>
+          <div class="attendance-list" id="attendanceList">
+            <!-- Attendance items will be added here dynamically -->
+            <div class="text-center text-sm opacity-80" id="noHistoryMessage">
+              Belum ada riwayat absensi
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -357,9 +410,8 @@
     const overlay = document.getElementById("overlay");
     const popupTitle = document.getElementById("popupTitle");
     const popupMessage = document.getElementById("popupMessage");
-    const lastAttendanceContainer = document.getElementById("lastAttendanceContainer");
-    const lastAttendanceName = document.getElementById("lastAttendanceName");
-    const lastAttendanceTime = document.getElementById("lastAttendanceTime");
+    const attendanceList = document.getElementById("attendanceList");
+    const noHistoryMessage = document.getElementById("noHistoryMessage");
     
     // Audio elements
     const successSound = document.getElementById("successSound");
@@ -371,6 +423,9 @@
     let isScanning = false;
     let lastScanTime = 0;
     const SCAN_COOLDOWN = 500; // 500ms cooldown between scans
+    
+    // Attendance history array (max 5 items)
+    let attendanceHistory = [];
     
     // Performance optimization variables
     let performanceMode = true;
@@ -425,6 +480,47 @@
       }
     }
     
+    // Function to add attendance to history
+    function addToHistory(name, time) {
+      // Add new attendance to beginning of array
+      attendanceHistory.unshift({
+        name: name,
+        time: time
+      });
+      
+      // Keep only last 5 items
+      if (attendanceHistory.length > 5) {
+        attendanceHistory = attendanceHistory.slice(0, 5);
+      }
+      
+      // Update the display
+      updateHistoryDisplay();
+    }
+    
+    // Function to update history display
+    function updateHistoryDisplay() {
+      if (attendanceHistory.length === 0) {
+        noHistoryMessage.style.display = "block";
+        return;
+      }
+      
+      noHistoryMessage.style.display = "none";
+      
+      // Clear existing items
+      attendanceList.innerHTML = '';
+      
+      // Add each attendance item
+      attendanceHistory.forEach(item => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'attendance-item';
+        itemElement.innerHTML = `
+          <div class="attendance-name">${item.name}</div>
+          <div class="attendance-time">${item.time}</div>
+        `;
+        attendanceList.appendChild(itemElement);
+      });
+    }
+    
     // Enhanced QR code scanning with performance optimization
     function handleScan(nis) {
       const now = Date.now();
@@ -476,17 +572,18 @@
             showNotif(data.message, "green");
             showSuccessPopup("Absensi Berhasil!", data.message);
             
-            lastAttendanceContainer.style.display = "block";
-            lastAttendanceName.textContent = data.nama || "Nama tidak tersedia";
-            lastAttendanceTime.textContent = new Date().toLocaleString();
+            // Add to history
+            const currentTime = new Date().toLocaleString();
+            addToHistory(data.nama || "Nama tidak tersedia", currentTime);
+            
           } else if (data.status === "info") {
             playSound('scan');
             showNotif(data.message, "blue");
             showSuccessPopup("Informasi Absensi", data.message);
             
-            lastAttendanceContainer.style.display = "block";
-            lastAttendanceName.textContent = data.nama || "Nama tidak tersedia";
-            lastAttendanceTime.textContent = "Sudah absen sebelumnya";
+            // Add to history
+            const currentTime = new Date().toLocaleString();
+            addToHistory(data.nama || "Nama tidak tersedia", "Sudah absen sebelumnya");
           } else {
             playSound('error');
             showNotif(data.message, "red");
@@ -538,6 +635,9 @@
       
       startScanBtn.addEventListener('click', startScanner);
       stopScanBtn.addEventListener('click', stopScanner);
+      
+      // Initialize history display
+      updateHistoryDisplay();
     }
     
     // Start scanner with high performance settings
