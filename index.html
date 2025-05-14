@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Absensi QR Siswa</title>
+  <title>Absensi QR Siswa - Enhanced Scanner</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -37,8 +37,8 @@
       color: white;
       border-radius: 12px;
       padding: 1.5rem;
-      margin-top: 1.5rem;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      height: fit-content;
     }
     
     .success-popup {
@@ -82,10 +82,15 @@
     
     #reader {
       width: 100%;
-      max-width: 400px;
+      max-width: 500px;
       margin: 0 auto;
       border-radius: 12px;
       overflow: hidden;
+      position: relative;
+    }
+    
+    #reader__dashboard_section_csr {
+      display: none !important;
     }
     
     .btn-primary {
@@ -172,10 +177,84 @@
     .header-container {
       position: relative;
     }
+    
+    /* Enhanced QR Scanner Styling */
+    #reader__scan_region {
+      width: 100% !important;
+    }
+    
+    #html5-qrcode-anchor-scan-type-change {
+      display: none !important;
+    }
+    
+    #html5-qrcode-button-camera-permission {
+      background: #3b82f6 !important;
+      color: white !important;
+      border: none !important;
+      padding: 8px 16px !important;
+      border-radius: 20px !important;
+      font-weight: 500 !important;
+    }
+    
+    /* New layout styles */
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    @media (min-width: 768px) {
+      .main-content {
+        flex-direction: row;
+      }
+      
+      .scanner-section {
+        flex: 1;
+      }
+      
+      .history-section {
+        width: 300px;
+      }
+    }
+    
+    /* Performance optimization classes */
+    .high-performance-scanner {
+      transform: translateZ(0);
+      will-change: transform;
+    }
+    
+    .scanner-optimized {
+      backface-visibility: hidden;
+      perspective: 1000px;
+    }
+    
+    /* Processing message style */
+    .processing-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 20px;
+      z-index: 10;
+      font-size: 0.9rem;
+      display: none;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.05); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
   </style>
 </head>
 <body class="p-4 md:p-6">
-  <div class="max-w-3xl mx-auto">
+  <div class="max-w-6xl mx-auto">
     <!-- Header with School Info -->
     <div class="header-container">
       <button class="back-btn" onclick="window.location.href='https://pujana2207.github.io/LANDING-PAGE-PRESENSI-DIGITAL-SPENSADA/'">
@@ -183,53 +262,61 @@
       </button>
       <div class="header-gradient text-white rounded-2xl p-6 mb-6 text-center">
         <div class="school-logo mb-4">
-          <img src="https://i.ibb.co.com/3YjdDh2N/logo-sekolah-FINAL.png" alt="Logo SMPN 1 Sukasada" class="school-logo">
+         <img src="https://i.ibb.co.com/3YjdDh2N/logo-sekolah-FINAL.png" alt="Logo SMPN 1 Sukasada" class="school-logo">
         </div>
         <h1 class="text-2xl font-bold mb-1">SMP NEGERI 1 SUKASADA</h1>
-        <p class="opacity-90">Sistem Absensi QR Code Siswa</p>
+        <p class="opacity-90">Sistem Absensi QR Code Siswa (Enhanced Performance)</p>
       </div>
     </div>
     
-    <!-- Scanner Controls -->
-    <div class="bg-white rounded-2xl p-6 mb-6 shadow-md">
-      <div class="scanner-controls text-center">
-        <div class="flex justify-center gap-4">
-          <button id="startScan" class="btn-primary px-6 py-3 rounded-full">
-            <i class="fas fa-qrcode mr-2"></i> Mulai Scan
-          </button>
-          <button id="stopScan" class="btn-primary btn-danger px-6 py-3 rounded-full hidden">
-            <i class="fas fa-stop mr-2"></i> Stop Scan
-          </button>
+    <div class="main-content">
+      <!-- Scanner Section -->
+      <div class="scanner-section">
+        <!-- Scanner Controls -->
+        <div class="bg-white rounded-2xl p-6 mb-6 shadow-md">
+          <div class="scanner-controls text-center">
+            <div class="flex justify-center gap-4">
+              <button id="startScan" class="btn-primary px-6 py-3 rounded-full">
+                <i class="fas fa-qrcode mr-2"></i> Mulai Scan (High Performance)
+              </button>
+              <button id="stopScan" class="btn-primary btn-danger px-6 py-3 rounded-full hidden">
+                <i class="fas fa-stop mr-2"></i> Stop Scan
+              </button>
+            </div>
+            <div class="camera-status mt-2" id="cameraStatus">Kamera tidak aktif</div>
+          </div>
+          
+          <div id="reader" class="my-4 hidden high-performance-scanner scanner-optimized"></div>
         </div>
-        <div class="camera-status mt-2" id="cameraStatus">Kamera tidak aktif</div>
+        
+        <!-- Status Container -->
+        <div class="status-card p-6 mb-6">
+          <div class="notif text-center" id="notif"></div>
+          <img src="https://i.gifer.com/origin/b4/b4d657e7ef262b88eb5f7ac021edda87.gif"
+                class="loading mx-auto my-4" id="loading" width="30px">
+        </div>
+        
+        <!-- Sound Toggle -->
+        <div class="sound-toggle bg-white rounded-2xl p-4 flex items-center justify-center shadow-sm">
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="soundToggle" class="sr-only peer" checked>
+            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            <span class="ml-3 text-sm font-medium text-gray-700">Aktifkan Suara</span>
+          </label>
+        </div>
       </div>
       
-      <div id="reader" class="my-4 hidden"></div>
-    </div>
-    
-    <!-- Status Container -->
-    <div class="status-card p-6 mb-6">
-      <div class="notif text-center" id="notif"></div>
-      <img src="https://i.gifer.com/origin/b4/b4d657e7ef262b88eb5f7ac021edda87.gif" 
-           class="loading mx-auto my-4" id="loading" width="30px">
-      
-      <!-- Enhanced Last Attendance Display -->
-      <div class="last-attendance" id="lastAttendanceContainer" style="display: none;">
-        <h3 class="font-bold text-lg mb-2 flex items-center justify-center">
-          <i class="fas fa-history mr-2"></i> Riwayat Terakhir
-        </h3>
-        <div class="text-xl font-semibold" id="lastAttendanceName"></div>
-        <div class="text-sm opacity-90 mt-1" id="lastAttendanceTime"></div>
+      <!-- History Section -->
+      <div class="history-section">
+        <!-- Last Attendance Display (Moved to Side) -->
+        <div class="last-attendance" id="lastAttendanceContainer" style="display: none;">
+          <h3 class="font-bold text-lg mb-2 flex items-center justify-center">
+            <i class="fas fa-history mr-2"></i> Riwayat Terakhir
+          </h3>
+          <div class="text-xl font-semibold text-center" id="lastAttendanceName"></div>
+          <div class="text-sm opacity-90 mt-1 text-center" id="lastAttendanceTime"></div>
+        </div>
       </div>
-    </div>
-    
-    <!-- Sound Toggle -->
-    <div class="sound-toggle bg-white rounded-2xl p-4 flex items-center justify-center shadow-sm">
-      <label class="inline-flex items-center cursor-pointer">
-        <input type="checkbox" id="soundToggle" class="sr-only peer" checked>
-        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-        <span class="ml-3 text-sm font-medium text-gray-700">Aktifkan Suara</span>
-      </label>
     </div>
     
     <!-- Success Popup -->
@@ -255,12 +342,11 @@
   <audio id="scanSound" src="https://soundbible.com/grab.php?id=819&type=mp3" preload="auto"></audio>
 
   <script>
-    // URL Google Apps Script Web App - GANTI DENGAN URL ANDA SENDIRI
+    // URL Google Apps Script Web App
     const scriptURL = "https://script.google.com/macros/s/AKfycbw3e1FpaTCOKekcqF18_IfvJEcaE6_WYUSPzJ7D5ascBFU_P1aK6GU2VLY4HdLprhJQ/exec";
     
-    // Elemen-elemen DOM yang sering digunakan
+    // DOM elements
     const notifElement = document.getElementById("notif");
-    const lastElement = document.getElementById("last");
     const loadingElement = document.getElementById("loading");
     const soundToggleElement = document.getElementById("soundToggle");
     const readerElement = document.getElementById("reader");
@@ -275,35 +361,47 @@
     const lastAttendanceName = document.getElementById("lastAttendanceName");
     const lastAttendanceTime = document.getElementById("lastAttendanceTime");
     
-    // Elemen-elemen Audio
+    // Audio elements
     const successSound = document.getElementById("successSound");
     const errorSound = document.getElementById("errorSound");
     const scanSound = document.getElementById("scanSound");
     
-    // Variabel untuk menyimpan instance scanner
+    // Scanner variables
     let qrScanner = null;
     let isScanning = false;
+    let lastScanTime = 0;
+    const SCAN_COOLDOWN = 500; // 500ms cooldown between scans
     
-    // Fungsi untuk menampilkan popup sukses
+    // Performance optimization variables
+    let performanceMode = true;
+    let lastFrameTime = 0;
+    const TARGET_FPS = 60;
+    const FRAME_INTERVAL = 1000 / TARGET_FPS;
+    
+    // Create processing message element
+    const processingMessage = document.createElement('div');
+    processingMessage.className = 'processing-message';
+    processingMessage.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses data absensi...';
+    document.getElementById('reader').appendChild(processingMessage);
+    
+    // Success popup functions
     function showSuccessPopup(title, message) {
       popupTitle.textContent = title;
       popupMessage.textContent = message;
       successPopup.style.display = "block";
       overlay.style.display = "block";
       
-      // Auto close after 2 seconds (changed from 5 to 2)
       setTimeout(() => {
         closePopup();
       }, 2000);
     }
     
-    // Fungsi untuk menutup popup
     function closePopup() {
       successPopup.style.display = "none";
       overlay.style.display = "none";
     }
     
-    // Fungsi untuk memainkan suara berdasarkan jenis dan pengaturan
+    // Sound functions
     function playSound(type) {
       if (!soundToggleElement.checked) return;
       
@@ -327,154 +425,186 @@
       }
     }
     
-    // Penanganan pemindaian QR Code
+    // Enhanced QR code scanning with performance optimization
     function handleScan(nis) {
+      const now = Date.now();
+      
+      // Rate limiting to prevent duplicate scans
+      if (now - lastScanTime < SCAN_COOLDOWN) {
+        console.log("Scan dibatasi karena terlalu cepat");
+        return;
+      }
+      lastScanTime = now;
+      
       if (!nis || nis.trim() === "") {
         showNotif("NIS tidak boleh kosong!", "red");
         playSound('error');
         return;
       }
       
-      // Mainkan suara scan
       playSound('scan');
-      
-      // Tampilkan loading
       loadingElement.style.display = "block";
       notifElement.innerText = "";
       
-      // Buat FormData untuk pengiriman
+      // Show processing message and pause camera
+      if (qrScanner) {
+        processingMessage.style.display = 'block';
+        qrScanner.pause(true);
+        cameraStatusElement.innerText = "Memproses data absensi...";
+      }
+      
       const formData = new FormData();
       formData.append('nis', nis.trim());
       
-      // Kirim data ke Google Apps Script
-      fetch(scriptURL, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        console.log("Status respons:", response.status);
-        if (!response.ok) {
-          throw new Error("Respons server tidak OK: " + response.status);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Data respons:", data);
-        
-        // Cek status respons
-        if (data.status === "success") {
-          playSound('success');
-          showNotif(data.message, "green");
-          showSuccessPopup("Absensi Berhasil!", data.message);
+      // Use requestAnimationFrame for better performance
+      requestAnimationFrame(() => {
+        fetch(scriptURL, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Respons server tidak OK: " + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Data respons:", data);
           
-          // Update last attendance display
-          lastAttendanceContainer.style.display = "block";
-          lastAttendanceName.textContent = data.nama || "Nama tidak tersedia";
-          lastAttendanceTime.textContent = new Date().toLocaleString();
-        } else if (data.status === "info") {
-          // Sudah absen sebelumnya, tampilkan info
-          playSound('scan');
-          showNotif(data.message, "blue");
-          showSuccessPopup("Informasi Absensi", data.message);
-          
-          // Update last attendance display
-          lastAttendanceContainer.style.display = "block";
-          lastAttendanceName.textContent = data.nama || "Nama tidak tersedia";
-          lastAttendanceTime.textContent = "Sudah absen sebelumnya";
-        } else {
-          // Error lain
+          if (data.status === "success") {
+            playSound('success');
+            showNotif(data.message, "green");
+            showSuccessPopup("Absensi Berhasil!", data.message);
+            
+            lastAttendanceContainer.style.display = "block";
+            lastAttendanceName.textContent = data.nama || "Nama tidak tersedia";
+            lastAttendanceTime.textContent = new Date().toLocaleString();
+          } else if (data.status === "info") {
+            playSound('scan');
+            showNotif(data.message, "blue");
+            showSuccessPopup("Informasi Absensi", data.message);
+            
+            lastAttendanceContainer.style.display = "block";
+            lastAttendanceName.textContent = data.nama || "Nama tidak tersedia";
+            lastAttendanceTime.textContent = "Sudah absen sebelumnya";
+          } else {
+            playSound('error');
+            showNotif(data.message, "red");
+          }
+        })
+        .catch(err => {
+          console.error("Error detail:", err);
+          showNotif("Gagal mengirim data! Coba lagi.", "red");
           playSound('error');
-          showNotif(data.message, "red");
-        }
-      })
-      .catch(err => {
-        console.error("Error detail:", err);
-        showNotif("Gagal mengirim data! Coba lagi.", "red");
-        playSound('error');
-      })
-      .finally(() => {
-        // Sembunyikan loading
-        loadingElement.style.display = "none";
+        })
+        .finally(() => {
+          loadingElement.style.display = "none";
+          processingMessage.style.display = 'none';
+          
+          // Resume scanning after processing
+          if (isScanning && qrScanner) {
+            setTimeout(() => {
+              qrScanner.resume();
+              cameraStatusElement.innerText = "Kamera aktif - siap untuk scan";
+            }, 1000);
+          }
+        });
       });
     }
     
-    // Fungsi untuk menampilkan notifikasi dengan warna
+    // Notification function
     function showNotif(message, color) {
       notifElement.innerText = message;
-      notifElement.style.color = color === "red" ? "#ef4444" : 
-                                color === "green" ? "#10b981" : "#3b82f6";
+      notifElement.style.color = color === "red" ? "#ef4444" :
+                                 color === "green" ? "#10b981" : "#3b82f6";
       
-      // Notifikasi otomatis hilang setelah 5 detik (kecuali error)
       if (color === "green" || color === "blue") {
         setTimeout(() => {
           notifElement.innerText = "";
         }, 5000);
       }
     }
-
-    // Inisialisasi QR Code Scanner
+    
+    // Initialize QR Scanner with performance optimizations
     function initQRScanner() {
-      // Coba meminta izin audio terlebih dahulu
       try {
         successSound.play().then(() => {
           successSound.pause();
           successSound.currentTime = 0;
-        }).catch(e => console.log("Autoplay diblokir, pengguna perlu berinteraksi dulu"));
+        }).catch(e => console.log("Autoplay diblokir"));
       } catch (e) {
         console.log("Browser tidak mendukung audio API:", e);
       }
       
-      // Tambahkan event listener untuk tombol
       startScanBtn.addEventListener('click', startScanner);
       stopScanBtn.addEventListener('click', stopScanner);
     }
     
-    // Fungsi untuk memulai scanner
+    // Start scanner with high performance settings
     function startScanner() {
       if (isScanning) return;
       
-      // Tampilkan elemen scanner dan tombol stop
       readerElement.style.display = "block";
       startScanBtn.classList.add('hidden');
       stopScanBtn.classList.remove('hidden');
-      cameraStatusElement.innerText = "Memulai kamera...";
+      cameraStatusElement.innerText = "Memulai kamera (High Performance)...";
       
-      // Buat instance scanner baru
+      // High performance scanner configuration
       qrScanner = new Html5Qrcode("reader");
-      const config = { fps: 15, qrbox: 200 , rememberLastUsedCamera: true};
+      const config = { 
+        fps: 60, // Double the frame rate for faster scanning
+        qrbox: { width: 300, height: 300 }, // Larger scan area
+        aspectRatio: 1.0,
+        disableFlip: false,
+        focusMode: "continuous",
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true,
+          useMultiFormatReader: true // Try multiple decoders simultaneously
+        }
+      };
       
       qrScanner.start(
-        { facingMode: "environment" }, // Gunakan kamera belakang jika tersedia
+        { facingMode: "environment" },
         config,
         (decodedText) => {
-          // Saat QR code terdeteksi
-          console.log("QR Code terdeteksi:", decodedText);
-          
-          // Proses hasil scan
-          handleScan(decodedText);
-          
-          // Pause scanner untuk menghindari scan berulang
-          qrScanner.pause(true);
-          cameraStatusElement.innerText = "Kamera dijeda (setelah scan)";
-          
-          // Aktifkan kembali scanner setelah 3 detik
-          setTimeout(() => {
-            if (isScanning) {
-              qrScanner.resume();
-              cameraStatusElement.innerText = "Kamera aktif - siap untuk scan";
+          // Throttle scans using requestAnimationFrame
+          const now = performance.now();
+          if (now - lastFrameTime >= FRAME_INTERVAL) {
+            lastFrameTime = now;
+            handleScan(decodedText);
+            
+            // Pause briefly to prevent duplicate scans
+            if (qrScanner) {
+              qrScanner.pause(true);
+              cameraStatusElement.innerText = "Memproses scan...";
+              
+              // Auto-resume after short delay
+              setTimeout(() => {
+                if (isScanning && qrScanner) {
+                  qrScanner.resume();
+                  cameraStatusElement.innerText = "Kamera aktif - siap untuk scan";
+                }
+              }, 500);
             }
-          }, 3000);
+          }
         },
         (errorMessage) => {
-          // Error pada pemindaian individual
-          // Biasanya tidak perlu ditampilkan ke pengguna
           console.log("QR Scan error:", errorMessage);
         }
       ).then(() => {
-        // Scanner berhasil diinisialisasi
         isScanning = true;
-        cameraStatusElement.innerText = "Kamera aktif - siap untuk scan";
+        cameraStatusElement.innerText = "Kamera aktif (High Performance)";
         playSound('scan');
+        
+        // Continuous focus optimization
+        if (qrScanner && qrScanner._foreverScanTimeout) {
+          clearTimeout(qrScanner._foreverScanTimeout);
+          qrScanner._foreverScanTimeout = setTimeout(() => {
+            if (qrScanner && qrScanner._shouldScan) {
+              qrScanner._onQRCodeScanned();
+            }
+          }, 50); // Faster scan loop
+        }
       }).catch(err => {
         console.error("Error inisialisasi scanner:", err);
         showNotif("Tidak bisa mengakses kamera. Pastikan izin kamera diberikan.", "red");
@@ -483,7 +613,7 @@
       });
     }
     
-    // Fungsi untuk menghentikan scanner
+    // Stop scanner
     function stopScanner() {
       if (!isScanning || !qrScanner) return;
       
@@ -496,7 +626,7 @@
       });
     }
     
-    // Reset UI scanner ke keadaan awal
+    // Reset scanner UI
     function resetScannerUI() {
       isScanning = false;
       readerElement.style.display = "none";
@@ -506,13 +636,26 @@
       qrScanner = null;
     }
     
-    // Mulai inisialisasi saat halaman dimuat
-    window.onload = initQRScanner;
+    // Initialize on page load
+    window.addEventListener('load', initQRScanner);
     
-    // Cleanup saat meninggalkan halaman
+    // Cleanup when leaving page
     window.addEventListener('beforeunload', function() {
       if (isScanning && qrScanner) {
         qrScanner.stop().catch(e => {});
+      }
+    });
+    
+    // Additional performance optimizations
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden && isScanning && qrScanner) {
+        // Pause scanner when tab is not visible to save resources
+        qrScanner.pause(true);
+        cameraStatusElement.innerText = "Scanner dijeda (tab tidak aktif)";
+      } else if (!document.hidden && isScanning && qrScanner) {
+        // Resume when tab becomes visible again
+        qrScanner.resume();
+        cameraStatusElement.innerText = "Kamera aktif - siap untuk scan";
       }
     });
   </script>
